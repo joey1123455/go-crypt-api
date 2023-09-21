@@ -164,3 +164,31 @@ func (w *Crypt) CheckLogs() (map[string]any, error) {
 	}
 	return nil, errors.New("error while checking logs")
 }
+
+/*
+ * GenQR - generates the qr code for the transaction
+ * value - qr value
+ * size - qr code size
+ * returns qr code or error
+ */
+func (w *Crypt) GenQR(value string, size int) (map[string]any, error) {
+	if size == 0 {
+		size = 512
+	}
+	params := map[string]any{
+		"addres": w.PaymentAddrs,
+	}
+	if value != "" {
+		params["value"] = value
+	}
+	params["size"] = size
+	// TODO: make a goroutine
+	res, err := utils.Request(w.Coin, "qrcode", params)
+	if err != nil {
+		return nil, err
+	}
+	if res["status"] == "success" {
+		return res, nil
+	}
+	return nil, errors.New("failed to generate qr code")
+}
