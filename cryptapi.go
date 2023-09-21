@@ -134,3 +134,33 @@ func (w *Crypt) GenPaymentAdress() (string, error) {
 	}
 	return "", errors.New("failed to gen wallet address")
 }
+
+/*
+ * CheckLogs - provides logs for transactions sent to a payment wallet
+ * @w - ptr to crypt instance (reciever method)
+ * returns - logs or error
+ */
+func (w *Crypt) CheckLogs() (map[string]any, error) {
+	if w.Coin == "" || w.CallBack == "" {
+		return nil, errors.New("incomplete data")
+	}
+	callBackUrl, err := url.Parse(w.CallBack)
+	query := callBackUrl.Query()
+	if err != nil {
+		return nil, err
+	}
+	for key, val := range w.Params {
+		query.Add(key, val.(string))
+	}
+	callBack := url.QueryEscape(callBackUrl.String())
+	res, err := utils.Request(w.Coin, "logs", map[string]any{
+		"callback": callBack,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if res["status"] == "success" {
+		return res, nil
+	}
+	return nil, errors.New("error while checking logs")
+}
