@@ -176,7 +176,7 @@ func (w *Crypt) GenQR(value string, size int) (map[string]any, error) {
 		size = 512
 	}
 	params := map[string]any{
-		"addres": w.PaymentAddrs,
+		"address": w.PaymentAddrs,
 	}
 	if value != "" {
 		params["value"] = value
@@ -191,4 +191,26 @@ func (w *Crypt) GenQR(value string, size int) (map[string]any, error) {
 		return res, nil
 	}
 	return nil, errors.New("failed to generate qr code")
+}
+
+/*
+ * GetEstimate - returns an estimate of a the transaction cost
+ * @coin - crypto currency
+ * @address - no of address to forward payment to
+ * @priority - the priority of the crypto payment
+ * returns - estimate or error
+ */
+func GetEstimate(coin string, address int, priority string) (map[string]any, error) {
+	// TODO: make a goroutine
+	res, err := utils.Request(coin, "estimate", map[string]any{
+		"address":  address,
+		"priority": priority,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if res["status"] == "success" {
+		return res, nil
+	}
+	return nil, errors.New("failed to collect estimate")
 }
