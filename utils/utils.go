@@ -45,8 +45,6 @@ func Request(coin, endpoint string, params map[string]any) (map[string]any, erro
 		}
 		url.RawQuery = query.Encode()
 	}
-
-	// make request
 	req, _ := http.NewRequest("GET", url.String(), nil)
 	req.Header.Set("referer", baseUrl)
 	client := &http.Client{}
@@ -76,7 +74,6 @@ func Info(coin string) (map[string]any, error) {
 	if coin == "" {
 		params["price"] = 0
 	}
-	// make request : make this a goroutine
 	res, err = Request(coin, "info", params)
 	if err != nil {
 		return nil, err
@@ -86,4 +83,33 @@ func Info(coin string) (map[string]any, error) {
 	}
 	err = errors.New("no coin was provided")
 	return nil, err
+}
+
+/*
+ * GetCoins - info on the supported coins
+ * @w - ptr to wrapper instance (reciever arg)
+ * returns - map of supported coins
+ */
+func GetCoins() (map[string]any, error) {
+	info, err := Info("")
+	if err != nil {
+		return nil, err
+	}
+	if info == nil {
+		return nil, errors.New("failed to get coin info")
+	}
+	delete(info, "fee_tiers")
+	coins := make(map[string]any)
+	for chain, data := range info {
+		_, isBaseCoin := data.(map[string]interface{})["ticker"]
+		if isBaseCoin {
+			coins[chain] = data
+		} else {
+			baseTicker := chain + "_"
+			for token, subData := range data.(map[string]interface{}) {
+				coins[baseTicker+token] = subData
+			}
+		}
+	}
+	return coins, nil
 }

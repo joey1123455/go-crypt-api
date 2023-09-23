@@ -57,45 +57,56 @@ func InitCryptWrapper(coin, ownAddress, callBack, paymentAddrs string, params, c
 }
 
 /*
+ * EstTransactionFee - returns the estimated value for a crypto transaction
+ * @coin - the coin being transacted in
+ * @adress - no of address being credited
+ * @priority - credit priority settings
+ * returns - response data or error
+ */
+func EstTransactionFee(coin string, address int, priority string) (map[string]any, error) {
+	res, err := utils.Request(coin, "estimate", map[string]any{
+		"address":  address,
+		"priority": priority,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if res["status"] == "success" {
+		return res, nil
+	}
+	return nil, errors.New("failed to collect estimate")
+}
+
+/*
+ * Convert - This method allows you to easily convert prices from FIAT to Crypto or even between cryptocurrencies
+ * @coin - currency to convert to
+ * @value -  the anount to convert
+ * @from - currency to convert from
+ * @returns - json response and error
+ */
+func Convert(coin string, value int, from string) (map[string]any, error) {
+	param := map[string]any{
+		"value": value,
+		"from":  from,
+	}
+	res, err := utils.Request(coin, "convert", param)
+	if err != nil {
+		return nil, err
+	}
+	if res["status"] == "success" {
+		return res, nil
+	}
+	return nil, errors.New("filed to convert currency")
+}
+
+/*
  * CryptWrapper - an interface defining the crypt api library
  * @GenPaymentAdress - returns a payment wallet address
  * @CheckLogs - checks payment logs for requets
  * @GenQR - generates a qr code for payment
  * @EstTransactionFee - estimates the fee of transaction
- * @convertRates - converts the rates from fiat to crypto or crypto to fiat
- * @GetCoins - returns a list of supported coins
  */
 type CryptWrapper interface {
-}
-
-/*
- * GetCoins - info on the supported coins
- * @w - ptr to wrapper instance (reciever arg)
- * returns - map of supported coins
- */
-func (w *Crypt) GetCoins() (map[string]any, error) {
-	// TODO: make this request async
-	info, err := utils.Info("")
-	if err != nil {
-		return nil, nil
-	}
-	if info == nil {
-		return nil, nil
-	}
-	delete(info, "fee_tiers")
-	coins := make(map[string]any)
-	for chain, data := range info {
-		_, isBaseCoin := data.(map[string]interface{})["ticker"]
-		if isBaseCoin {
-			coins[chain] = data
-		} else {
-			baseTicker := chain + "_"
-			for token, subData := range data.(map[string]interface{}) {
-				coins[baseTicker+token] = subData
-			}
-		}
-	}
-	return coins, nil
 }
 
 /*
@@ -122,7 +133,6 @@ func (w *Crypt) GenPaymentAdress() (string, error) {
 	params["callback"] = url.QueryEscape(callBackUrl.String())
 	params["address"] = w.OwnAddress
 
-	// TODO: make concurrent
 	res, err := utils.Request(w.Coin, "create", params)
 	if err != nil {
 		return "", err
@@ -182,7 +192,6 @@ func (w *Crypt) GenQR(value string, size int) (map[string]any, error) {
 		params["value"] = value
 	}
 	params["size"] = size
-	// TODO: make a goroutine
 	res, err := utils.Request(w.Coin, "qrcode", params)
 	if err != nil {
 		return nil, err
@@ -191,26 +200,4 @@ func (w *Crypt) GenQR(value string, size int) (map[string]any, error) {
 		return res, nil
 	}
 	return nil, errors.New("failed to generate qr code")
-}
-
-/*
- * GetEstimate - returns an estimate of a the transaction cost
- * @coin - crypto currency
- * @address - no of address to forward payment to
- * @priority - the priority of the crypto payment
- * returns - estimate or error
- */
-func GetEstimate(coin string, address int, priority string) (map[string]any, error) {
-	// TODO: make a goroutine
-	res, err := utils.Request(coin, "estimate", map[string]any{
-		"address":  address,
-		"priority": priority,
-	})
-	if err != nil {
-		return nil, err
-	}
-	if res["status"] == "success" {
-		return res, nil
-	}
-	return nil, errors.New("failed to collect estimate")
 }
