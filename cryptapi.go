@@ -13,9 +13,6 @@ import (
 	"github.com/joey1123455/go-crypt-api/utils"
 )
 
-// the base url for crypt apis
-// const BaseUrl = "https://api.cryptapi.io"
-
 /*
  * Crypt - an instance representing the connection to the crypt api
  * @Coin - the currency to transact in
