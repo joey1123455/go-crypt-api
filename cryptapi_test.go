@@ -26,7 +26,7 @@ func TestGetCoins(t *testing.T) {
 
 // test gen address method
 func TestGenPaymentAdress(t *testing.T) {
-	var ci = InitCryptWrapper("btc", "bc1qcpxcm8cf52uv865j6qugl82twgy0lz88sfrpk4", callBackUrl, "", map[string]string{
+	var ci = InitCryptWrapper("btc", "bc1qcpxcm8cf52uv865j6qugl82twgy0lz88sfrpk4", callBackUrl, map[string]string{
 		"multi_chain": "1",
 	}, map[string]string{
 		"user_id":  "10",
@@ -38,7 +38,7 @@ func TestGenPaymentAdress(t *testing.T) {
 
 // test get logs
 func TestCheckLogs(t *testing.T) {
-	var ci = InitCryptWrapper("btc", "bc1qcpxcm8cf52uv865j6qugl82twgy0lz88sfrpk4", callBackUrl, "", map[string]string{
+	var ci = InitCryptWrapper("btc", "bc1qcpxcm8cf52uv865j6qugl82twgy0lz88sfrpk4", callBackUrl, map[string]string{
 		"multi_chain": "1",
 	}, map[string]string{
 		"user_id":  "10",
@@ -50,7 +50,7 @@ func TestCheckLogs(t *testing.T) {
 
 // // test getting QR code
 func TestGenQR(t *testing.T) {
-	var ci = InitCryptWrapper("btc", "bc1qcpxcm8cf52uv865j6qugl82twgy0lz88sfrpk4", callBackUrl, "", map[string]string{
+	var ci = InitCryptWrapper("btc", "bc1qcpxcm8cf52uv865j6qugl82twgy0lz88sfrpk4", callBackUrl, map[string]string{
 		"convert":     "1",
 		"multi_chain": "1",
 	}, map[string]string{})

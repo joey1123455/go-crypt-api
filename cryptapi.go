@@ -42,13 +42,13 @@ type Crypt struct {
  * @caParams - querry params
  * returns - ptr to crypt instance
  */
-func InitCryptWrapper(coin, ownAddress, callBack, paymentAddrs string, params, caParams map[string]string) *Crypt {
+func InitCryptWrapper(coin, ownAddress, callBack string, params, caParams map[string]string) *Crypt {
 	// TODO: check if coin is valid
 	return &Crypt{
 		Coin:         coin,
 		OwnAddress:   ownAddress,
 		CallBack:     callBack,
-		PaymentAddrs: paymentAddrs,
+		PaymentAddrs: "",
 		Params:       params,
 		CaParams:     caParams,
 	}
@@ -114,7 +114,7 @@ type CryptWrapper interface {
  */
 func (w *Crypt) GenPaymentAdress() (string, error) {
 	if w.Coin == "" || w.CallBack == "" || w.OwnAddress == "" {
-		return "", errors.New("incomplte information")
+		return "", errors.New("incomplte information coin, callback url and own address must be specified")
 	}
 	callBackUrl, err := url.Parse(w.CallBack)
 	query := callBackUrl.Query()
