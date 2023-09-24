@@ -18,7 +18,7 @@ const baseUrl = "https://api.cryptapi.io"
  * @params - request params
  * returns - unmarshalled json body and an error
  */
-func Request(coin, endpoint string, params map[string]any) (map[string]any, error) {
+func Request(coin, endpoint string, params map[string]string) (map[string]any, error) {
 	parsedCoin := strings.Replace(coin, "_", "/", -1)
 	var url *url.URL
 	var err error
@@ -41,7 +41,7 @@ func Request(coin, endpoint string, params map[string]any) (map[string]any, erro
 	if params != nil {
 		query := url.Query()
 		for key, value := range params {
-			query.Add(key, value.(string))
+			query.Add(key, value)
 		}
 		url.RawQuery = query.Encode()
 	}
@@ -70,9 +70,9 @@ func Request(coin, endpoint string, params map[string]any) (map[string]any, erro
 func Info(coin string) (map[string]any, error) {
 	var err error
 	var res map[string]any
-	var params = make(map[string]any)
+	var params = make(map[string]string)
 	if coin == "" {
-		params["price"] = 0
+		params["price"] = "0"
 	}
 	res, err = Request(coin, "info", params)
 	if err != nil {

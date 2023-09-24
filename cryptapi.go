@@ -8,6 +8,7 @@ package cryptapi
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 
 	"github.com/joey1123455/go-crypt-api/utils"
@@ -26,8 +27,8 @@ type Crypt struct {
 	Coin         string
 	OwnAddress   string
 	CallBack     string
-	Params       map[string]any
-	CaParams     map[string]any
+	Params       map[string]string
+	CaParams     map[string]string
 	PaymentAddrs string
 }
 
@@ -41,7 +42,7 @@ type Crypt struct {
  * @caParams - querry params
  * returns - ptr to crypt instance
  */
-func InitCryptWrapper(coin, ownAddress, callBack, paymentAddrs string, params, caParams map[string]any) *Crypt {
+func InitCryptWrapper(coin, ownAddress, callBack, paymentAddrs string, params, caParams map[string]string) *Crypt {
 	// TODO: check if coin is valid
 	return &Crypt{
 		Coin:         coin,
@@ -60,8 +61,8 @@ func InitCryptWrapper(coin, ownAddress, callBack, paymentAddrs string, params, c
  * @priority - credit priority settings
  * returns - response data or error
  */
-func EstTransactionFee(coin string, address int, priority string) (map[string]any, error) {
-	res, err := utils.Request(coin, "estimate", map[string]any{
+func EstTransactionFee(coin string, address string, priority string) (map[string]any, error) {
+	res, err := utils.Request(coin, "estimate", map[string]string{
 		"address":  address,
 		"priority": priority,
 	})
@@ -71,18 +72,18 @@ func EstTransactionFee(coin string, address int, priority string) (map[string]an
 	if res["status"] == "success" {
 		return res, nil
 	}
-	return nil, errors.New("failed to collect estimate")
+	return nil, errors.New(res["error"].(string))
 }
 
 /*
  * Convert - This method allows you to easily convert prices from FIAT to Crypto or even between cryptocurrencies
  * @coin - currency to convert to
- * @value -  the anount to convert
+ * @value -  the amount to convert
  * @from - currency to convert from
  * @returns - json response and error
  */
-func Convert(coin string, value int, from string) (map[string]any, error) {
-	param := map[string]any{
+func Convert(coin string, value string, from string) (map[string]any, error) {
+	param := map[string]string{
 		"value": value,
 		"from":  from,
 	}
@@ -90,10 +91,11 @@ func Convert(coin string, value int, from string) (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(res["error"])
 	if res["status"] == "success" {
 		return res, nil
 	}
-	return nil, errors.New("filed to convert currency")
+	return nil, errors.New(res["error"].(string))
 }
 
 /*
@@ -101,7 +103,6 @@ func Convert(coin string, value int, from string) (map[string]any, error) {
  * @GenPaymentAdress - returns a payment wallet address
  * @CheckLogs - checks payment logs for requets
  * @GenQR - generates a qr code for payment
- * @EstTransactionFee - estimates the fee of transaction
  */
 type CryptWrapper interface {
 }
@@ -120,14 +121,16 @@ func (w *Crypt) GenPaymentAdress() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	for key, val := range w.Params {
-		query.Add(key, val.(string))
-	}
-	params := make(map[string]any)
 	for key, val := range w.CaParams {
+		query.Add(key, val)
+	}
+	params := make(map[string]string)
+	for key, val := range w.Params {
 		params[key] = val
 	}
-	params["callback"] = url.QueryEscape(callBackUrl.String())
+	callBackUrl.RawQuery = query.Encode()
+	callBack := callBackUrl.String()
+	params["callback"] = callBack
 	params["address"] = w.OwnAddress
 
 	res, err := utils.Request(w.Coin, "create", params)
@@ -139,7 +142,7 @@ func (w *Crypt) GenPaymentAdress() (string, error) {
 		w.PaymentAddrs = add
 		return add, nil
 	}
-	return "", errors.New("failed to gen wallet address")
+	return "", errors.New(res["error"].(string))
 }
 
 /*
@@ -156,20 +159,23 @@ func (w *Crypt) CheckLogs() (map[string]any, error) {
 	if err != nil {
 		return nil, err
 	}
-	for key, val := range w.Params {
-		query.Add(key, val.(string))
+	for key, val := range w.CaParams {
+		query.Add(key, val)
 	}
-	callBack := url.QueryEscape(callBackUrl.String())
-	res, err := utils.Request(w.Coin, "logs", map[string]any{
+
+	callBackUrl.RawQuery = query.Encode()
+	callBack := callBackUrl.String()
+	res, err := utils.Request(w.Coin, "logs", map[string]string{
 		"callback": callBack,
 	})
+	fmt.Println(res)
 	if err != nil {
 		return nil, err
 	}
 	if res["status"] == "success" {
 		return res, nil
 	}
-	return nil, errors.New("error while checking logs")
+	return nil, errors.New(res["error"].(string))
 }
 
 /*
@@ -178,11 +184,11 @@ func (w *Crypt) CheckLogs() (map[string]any, error) {
  * size - qr code size
  * returns qr code or error
  */
-func (w *Crypt) GenQR(value string, size int) (map[string]any, error) {
-	if size == 0 {
-		size = 512
+func (w *Crypt) GenQR(value string, size string) (map[string]any, error) {
+	if size == "0" {
+		size = "512"
 	}
-	params := map[string]any{
+	params := map[string]string{
 		"address": w.PaymentAddrs,
 	}
 	if value != "" {
@@ -196,5 +202,5 @@ func (w *Crypt) GenQR(value string, size int) (map[string]any, error) {
 	if res["status"] == "success" {
 		return res, nil
 	}
-	return nil, errors.New("failed to generate qr code")
+	return nil, errors.New(res["error"].(string))
 }
