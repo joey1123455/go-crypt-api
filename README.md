@@ -125,7 +125,7 @@ Before generating a qr code ensure you have generated a payment address using `c
     if err != nil {
       fmt.Println("while generating qr code:", err)
     } else {
-      fmt.Println("qr code:", history)
+      fmt.Println("qr code:", qr)
     }
 ```
 
