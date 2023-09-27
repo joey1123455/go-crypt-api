@@ -80,7 +80,7 @@ func EstTransactionFee(coin string, address string, priority string) (map[string
  * @coin - currency to convert to
  * @value -  the amount to convert
  * @from - currency to convert from
- * @returns - json response and error
+ * returns - json response and error
  */
 func Convert(coin string, value string, from string) (map[string]any, error) {
 	param := map[string]string{
@@ -180,8 +180,9 @@ func (w *Crypt) CheckLogs() (map[string]any, error) {
 
 /*
  * GenQR - generates the qr code for the transaction
- * value - qr value
- * size - qr code size
+ * @value - qr value
+ * @w - crypt instance
+ * @size - qr code size
  * returns qr code or error
  */
 func (w *Crypt) GenQR(value string, size string) (map[string]any, error) {
